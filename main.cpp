@@ -1,0 +1,109 @@
+#include <Arduino.h>
+#include <U8g2lib.h>
+#include "AiEsp32RotaryEncoder.h"
+
+#define OLED_CS D8
+#define OLED_RES D3
+//#define OLED_DC D4
+#define OLED_DC D0
+
+#define ENCODER_CLK D2
+#define ENCODER_DT D1
+//#define ENCODER_SW D0
+#define ENCODER_SW D4
+#define ENCODER_VCC -1
+#define ENCODER_STEPS 4
+
+U8G2_SSD1309_128X64_NONAME2_1_4W_HW_SPI oled(U8G2_R2, OLED_CS, OLED_DC, OLED_RES);  
+AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ENCODER_DT, ENCODER_CLK, ENCODER_SW, ENCODER_VCC, ENCODER_STEPS);
+
+u8g2_uint_t oledWidth = 0;
+u8g2_uint_t oledHeight = 0;
+
+volatile unsigned long encoderLastTurn = 0;
+volatile unsigned long encoderLastPush = 0;
+bool led = false;
+u8g2_uint_t x = 0;
+u8g2_uint_t y = 0;
+
+void encoderOnButtonClick() {
+  if (millis() - encoderLastPush < 500) {
+    return;
+  }
+  encoderLastPush = millis();
+  Serial.print("button pressed ");
+  Serial.print(millis());
+  Serial.println(" milliseconds after restart");
+}
+
+void IRAM_ATTR readEncoderISR() {
+  rotaryEncoder.readEncoder_ISR();
+}
+
+void setup() {
+  // Initialize the Serial terminal
+  Serial.begin(115200);
+  Serial.println("Starting up...");
+
+  // Set the encoder pins to inputs with an internal pullup resistor. The rotary encoder simply "shorts" the 
+  // CLK, DT, and SW pins to GND whenever applicable, so we need to provide the "pull to logic HIGH" function. 
+  // If we don't the pins could be "floating" somewhere between logic HIGH (3.3V) and logic LOW (0V/GND).
+  pinMode(ENCODER_CLK, INPUT_PULLUP);
+  pinMode(ENCODER_DT, INPUT_PULLUP);
+  pinMode(ENCODER_SW, OUTPUT);
+
+  // Initialize the OLED display
+  oled.begin();
+  oled.setFont(u8g2_font_logisoso16_tf);
+  oled.setDisplayRotation(U8G2_R1); 
+  Serial.println("OLED initialized");
+
+  // Precompute some variables - No point in doing these things in the "loop" section 
+  // since the results would never change
+  // Get the actual display width and height so we can compute pixel locations later
+  oledHeight = oled.getDisplayHeight();
+  oledWidth = oled.getDisplayWidth();
+
+  // Initialize the rotary encoder library
+  rotaryEncoder.begin();
+  rotaryEncoder.setup(readEncoderISR);
+
+  // Set boundaries and if values should cycle or not
+  // in this example we will set possible values between 0 and 1000;
+  rotaryEncoder.setBoundaries(0, 1000, false);
+
+  // Set a default "acceleration" behavior. Read the library to find out more about what this does.
+  //rotaryEncoder.disableAcceleration(); //acceleration is now enabled by default - disable if you dont need it
+  rotaryEncoder.setAcceleration(250); //or set the value - larger number = more accelearation; 0 or 1 means disabled acceleration
+}
+
+void loop() {
+
+  // Service the rotary encoder
+  if (rotaryEncoder.encoderChanged()) {
+    Serial.print("Value: ");
+    Serial.println(rotaryEncoder.readEncoder());
+  }
+  if (rotaryEncoder.isEncoderButtonClicked()) {
+    encoderOnButtonClick();
+  }
+
+  // Draw stuff on the OLED
+  oled.firstPage();
+  do {
+    // Draw a clipped circle in the corner
+    // oled.drawCircle(8, 8, 16);
+    // Draw the text centered (x-axis, not y) on the screen
+    // oled.drawUTF8(oledWidth/2 - helloTextWidth/2, 50, helloText);
+
+    char bufferA[32];
+    char bufferB[32];
+    
+    snprintf(&(bufferA[0]), 32, "%ld", rotaryEncoder.readEncoder());
+    snprintf(&(bufferB[0]), 32, "%lu", encoderLastPush);
+
+    oled.drawUTF8(0, 20, "Encoder");
+    oled.drawUTF8(0, 40, bufferA);
+    oled.drawUTF8(0, 60, bufferB);
+  } while (oled.nextPage());
+}
