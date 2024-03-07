@@ -1,0 +1,64 @@
+#include <Arduino.h>
+#include "AiEsp32RotaryEncoder.h"
+
+#define ENCODER_CLK D2
+#define ENCODER_DT D1
+#define ENCODER_SW D5
+#define ENCODER_VCC -1
+#define ENCODER_STEPS 4
+
+AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ENCODER_DT, ENCODER_CLK, ENCODER_SW, ENCODER_VCC, ENCODER_STEPS);
+static unsigned long lastTimePressed = 0; // Soft debouncing
+
+void rotary_onButtonClick() {
+  if (millis() - lastTimePressed < 500) {
+    return;
+  }
+  lastTimePressed = millis();
+  Serial.print("button pressed ");
+  Serial.print(millis());
+  Serial.println(" milliseconds after restart");
+}
+
+void rotary_loop() {
+    //dont print anything unless value changed
+    if (rotaryEncoder.encoderChanged()){
+      Serial.print("Value: ");
+      Serial.println(rotaryEncoder.readEncoder());
+    }
+    if (rotaryEncoder.isEncoderButtonClicked()) {
+      rotary_onButtonClick();
+    }
+}
+
+void IRAM_ATTR readEncoderISR() {
+  rotaryEncoder.readEncoder_ISR();
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  //we must initialize rotary encoder
+  rotaryEncoder.begin();
+  rotaryEncoder.setup(readEncoderISR);
+
+  //set boundaries and if values should cycle or not
+  //in this example we will set possible values between 0 and 1000;
+  bool circleValues = false;
+  rotaryEncoder.setBoundaries(0, 1000, circleValues); //minValue, maxValue, circleValues true|false (when max go to min and vice versa)
+
+  /*Rotary acceleration introduced 25.2.2021.
+  * in case range to select is huge, for example - select a value between 0 and 1000 and we want 785
+  * without accelerateion you need long time to get to that number
+  * Using acceleration, faster you turn, faster will the value raise.
+  * For fine tuning slow down.
+  */
+  //rotaryEncoder.disableAcceleration(); //acceleration is now enabled by default - disable if you dont need it
+  rotaryEncoder.setAcceleration(250); //or set the value - larger number = more accelearation; 0 or 1 means disabled acceleration
+}
+
+void loop() {
+  //in loop call your custom function which will process rotary encoder values
+  rotary_loop();
+  delay(50); //or do whatever you need to do...
+}
