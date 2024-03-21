@@ -124,6 +124,14 @@ void oled_update() {
     oled.drawFrame(85,40,41,20);
     oled.setCursor(2, 33);
     oled.print(strip_length_left);
+    oled.setCursor(44, 33);
+    oled.print(strip_length_left);
+    oled.setCursor(87, 33);
+    oled.print(strip_length_left);
+    oled.setCursor(2, 58);
+    oled.print(strip_length_left);
+    oled.setCursor(44, 58);
+    oled.print(strip_length_left);
     // This will be part of your first task...
     //oled.drawWire();
 
