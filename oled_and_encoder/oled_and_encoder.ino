@@ -38,6 +38,24 @@ const int WIRE_INSULATION_HEIGHT = 14;
 //volatile unsigned long encoderLastTurn = 0;
 volatile unsigned long encoderLastPush = 0; // A variable to save the last timestamp when the button was pushed
 volatile unsigned long strip_length_left = 0; 
+volatile unsigned long wire_length = 0;
+volatile unsigned long strip_length_right = 0;
+volatile unsigned long quantity = 0;
+volatile unsigned long strip_depth = 0;
+volatile unsigned short box_num = 1;
+
+void oled_print_boxes() {
+  oled.setCursor(1, 33);
+  oled.print(strip_length_left);
+  oled.setCursor(43, 33);
+  oled.print(wire_length);
+  oled.setCursor(86, 33);
+  oled.print(strip_length_right);
+  oled.setCursor(1, 58);
+  oled.print(quantity);
+  oled.setCursor(43, 58);
+  oled.print(strip_depth);
+}
 
 void encoderOnButtonClick() {
 
@@ -52,6 +70,11 @@ void encoderOnButtonClick() {
   Serial.print("button pressed ");
   Serial.print(millis());
   Serial.println(" milliseconds after restart");
+
+  box_num = box_num + 1;
+  if (box_num > 5){
+    box_num = 1;
+  }  
 }
 
 void IRAM_ATTR readEncoderISR() {
@@ -122,16 +145,7 @@ void oled_update() {
     oled.drawFrame(0,40,41,20);
     oled.drawFrame(42,40,42,20);
     oled.drawFrame(85,40,41,20);
-    oled.setCursor(2, 33);
-    oled.print(strip_length_left);
-    oled.setCursor(44, 33);
-    oled.print(strip_length_left);
-    oled.setCursor(87, 33);
-    oled.print(strip_length_left);
-    oled.setCursor(2, 58);
-    oled.print(strip_length_left);
-    oled.setCursor(44, 58);
-    oled.print(strip_length_left);
+    oled_print_boxes();
     // This will be part of your first task...
     //oled.drawWire();
 
@@ -147,7 +161,22 @@ bool read_encoder() {
   if (rotaryEncoder.encoderChanged()) {
     Serial.print("Value: ");
     Serial.println(rotaryEncoder.readEncoder());
-    strip_length_left = rotaryEncoder.readEncoder();
+    if (box_num == 1){
+      //rotaryEncoder.setEncoderValue(strip_length_left);
+      strip_length_left = rotaryEncoder.readEncoder();
+    }
+    if (box_num == 2){
+        wire_length = rotaryEncoder.readEncoder();
+    }
+    if (box_num == 3){
+        strip_length_right = rotaryEncoder.readEncoder();
+    }
+    if (box_num == 4){
+        quantity = rotaryEncoder.readEncoder();
+    }
+    if (box_num == 5){
+        strip_depth = rotaryEncoder.readEncoder();
+    }  
     haschanged = true;
   }
 
