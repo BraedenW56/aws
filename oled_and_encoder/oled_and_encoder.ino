@@ -122,14 +122,19 @@ void oled_update() {
     oled.drawFrame(0,40,41,20);
     oled.drawFrame(42,40,42,20);
     oled.drawFrame(85,40,41,20);
+    //Top left box
     oled.setCursor(2, 33);
     oled.print(strip_length_left);
+    //Top middle box
     oled.setCursor(44, 33);
     oled.print(strip_length_left);
+    //Top right box
     oled.setCursor(87, 33);
     oled.print(strip_length_left);
+    //Bottom left box
     oled.setCursor(2, 58);
     oled.print(strip_length_left);
+    //Bottom middle box
     oled.setCursor(44, 58);
     oled.print(strip_length_left);
     // This will be part of your first task...
