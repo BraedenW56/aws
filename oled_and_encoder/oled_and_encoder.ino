@@ -116,12 +116,12 @@ void oled_update() {
     //oled.drawStr(0, 20, "HELLO WORLD");
     oled.drawLine(0, 7, 128, 7);
     oled.drawBox(34,5,58,5);
-    oled.drawFrame(0,16,41,19);
-    oled.drawFrame(42,16,42,19);
-    oled.drawFrame(85,16,41,19);
-    oled.drawFrame(0,38,41,19);
-    oled.drawFrame(42,38,42,19);
-    oled.drawFrame(85,38,41,19);
+    oled.drawFrame(0,15,41,20);
+    oled.drawFrame(42,15,42,20);
+    oled.drawFrame(85,15,41,20);
+    oled.drawFrame(0,40,41,20);
+    oled.drawFrame(42,40,42,20);
+    oled.drawFrame(85,40,41,20);
     oled.setCursor(2, 33);
     oled.print(strip_length_left);
     // This will be part of your first task...

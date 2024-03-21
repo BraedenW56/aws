@@ -17,6 +17,7 @@ AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ENCODER_DT, ENCODER_CL
 
 //volatile unsigned long encoderLastTurn = 0;
 volatile unsigned long encoderLastPush = 0; // A variable to save the last timestamp when the button was pushed
+volatile unsigned long sll = 0; 
 
 void encoderOnButtonClick() {
 
@@ -46,7 +47,9 @@ void setup() {
   pinMode(ENCODER_DT, INPUT_PULLUP);
   pinMode(ENCODER_SW, OUTPUT);
 
+  Serial.begin(9600);
   Serial.println("Hello from line 49");
+
 
   // Initialize the rotary encoder library
   rotaryEncoder.begin();
