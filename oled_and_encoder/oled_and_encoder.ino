@@ -13,6 +13,9 @@
 #define ENCODER_VCC -1
 #define ENCODER_STEPS 4
 
+#define ADJUST_VALUES true
+#define SELECT_BOXES false
+
 // Specify which pins are used on the microcontroller to communicate with the OLED display
 #define OLED_CS D8 // clock
 #define OLED_RES D3 // reset
@@ -44,6 +47,8 @@ volatile unsigned long quantity = 0;
 volatile unsigned long strip_depth = 0;
 volatile unsigned short box_num = 1;
 
+volatile bool button_mode = SELECT_BOXES;
+
 void oled_print_boxes() {
   oled.setCursor(1, 33);
   oled.print(strip_length_left);
@@ -72,9 +77,28 @@ void encoderOnButtonClick() {
   Serial.println(" milliseconds after restart");
 
   box_num = box_num + 1;
-  if (box_num > 5){
+  
+  if (box_num > 6){
     box_num = 1;
-  }  
+  }
+  if (box_num == 1){
+      rotaryEncoder.setEncoderValue(strip_length_left);
+  }
+  if (box_num == 2){
+        rotaryEncoder.setEncoderValue(wire_length);
+  }
+  if (box_num == 3){
+        rotaryEncoder.setEncoderValue(strip_length_right);
+  }
+  if (box_num == 4){
+        rotaryEncoder.setEncoderValue(quantity);
+  }
+  if (box_num == 5){
+        rotaryEncoder.setEncoderValue(strip_depth);
+  }|
+  if (box_num == 6){
+        //highlight start box
+  }        
 }
 
 void IRAM_ATTR readEncoderISR() {
@@ -162,7 +186,6 @@ bool read_encoder() {
     Serial.print("Value: ");
     Serial.println(rotaryEncoder.readEncoder());
     if (box_num == 1){
-      //rotaryEncoder.setEncoderValue(strip_length_left);
       strip_length_left = rotaryEncoder.readEncoder();
     }
     if (box_num == 2){
