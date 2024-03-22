@@ -95,7 +95,7 @@ void encoderOnButtonClick() {
   }
   if (box_num == 5){
         rotaryEncoder.setEncoderValue(strip_depth);
-  }|
+  }
   if (box_num == 6){
         //highlight start box
   }        
@@ -169,6 +169,9 @@ void oled_update() {
     oled.drawFrame(0,40,41,20);
     oled.drawFrame(42,40,42,20);
     oled.drawFrame(85,40,41,20);
+    oled.setCursor(86,58);
+    oled.setFont(const uint8_t *font)
+    oled.print("start");
     oled_print_boxes();
     // This will be part of your first task...
     //oled.drawWire();
