@@ -49,9 +49,14 @@ volatile unsigned short box_num = 1;
 
 volatile bool button_mode = SELECT_BOXES;
 
-void oled_print_boxes() {
+void oled_print_box_values() {
+  oled.setFont(u8g2_font_logisoso16_tf);
+  oled.setFontMode(1);
+  oled.setDrawColor(2);
   oled.setCursor(1, 33);
   oled.print(strip_length_left);
+  oled.setDrawColor(1);
+  oled.setFontMode(0);
   oled.setCursor(43, 33);
   oled.print(wire_length);
   oled.setCursor(86, 33);
@@ -77,11 +82,12 @@ void encoderOnButtonClick() {
   Serial.println(" milliseconds after restart");
 
   box_num = box_num + 1;
-  
+
   if (box_num > 6){
     box_num = 1;
   }
   if (box_num == 1){
+      //oled.setDrawColor(2);
       rotaryEncoder.setEncoderValue(strip_length_left);
   }
   if (box_num == 2){
@@ -97,7 +103,7 @@ void encoderOnButtonClick() {
         rotaryEncoder.setEncoderValue(strip_depth);
   }
   if (box_num == 6){
-        //highlight start box
+        //read encoder for click to start machine
   }        
 }
 
@@ -146,6 +152,7 @@ void oled_setup() {
   // Get the actual display width and height so we can compute pixel locations later
   SCREEN_HEIGHT = oled.getDisplayHeight();
   SCREEN_WIDTH = oled.getDisplayWidth();
+  oled_drawstuff();
 }
 
 // Microcontroller will loop indefinitely
@@ -157,30 +164,92 @@ void oled_update() {
   // firstPage() must always be used in a do-while loop with the nextPage() command - this renders the content of the display
   oled.firstPage();
   do {
-    // All graphics commands have to appear within the do-while loop body
+    oled_drawstuff();
+  } while (oled.nextPage());
 
+}
+
+void oled_drawstuff() {
+   // All graphics commands have to appear within the do-while loop body
     // An example, just display "HELLO WORLD" using the drawStr() function, once you feel comfortable delete this line and work on drawWire() function
     //oled.drawStr(0, 20, "HELLO WORLD");
     oled.drawLine(0, 7, 128, 7);
     oled.drawBox(34,5,58,5);
     oled.drawFrame(0,15,41,20);
+    oled.drawBox(0,15,41,20);
     oled.drawFrame(42,15,42,20);
     oled.drawFrame(85,15,41,20);
     oled.drawFrame(0,40,41,20);
     oled.drawFrame(42,40,42,20);
     oled.drawFrame(85,40,41,20);
-    oled.setCursor(86,58);
-    oled.setFont(const uint8_t *font)
-    oled.print("start");
-    oled_print_boxes();
+    oled.setCursor(91,54);
+    oled.setFont(u8g2_font_6x13_tf);
+    oled.print("Start");
+    oled_print_box_values();
     // This will be part of your first task...
     //oled.drawWire();
 
-  } while (oled.nextPage());
-
 }
 
-bool read_encoder() {
+bool read_encoder_box_mode() {
+  bool haschanged = false;
+
+  // Service the rotary encoder - read it's current value and print out to console
+  if (rotaryEncoder.encoderChanged()) {
+    Serial.print("Value: ");
+    Serial.println(rotaryEncoder.readEncoder());
+
+    box_num = 1 + rotaryEncoder.readEncoder() % 6;
+    //START HERE
+
+    if (box_num == 1){
+        box_num = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(1);
+        Serial.println("215");
+        oled.drawBox(0,15,41,20);
+        Serial.println("217");
+    }
+    if (box_num == 2){
+        wire_length = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(42,15,41,20);
+    }
+    if (box_num == 3){
+        strip_length_right = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(85,15,41,20);
+    }
+    if (box_num == 4){
+        quantity = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(0,40,41,20);
+    }
+    if (box_num == 5){
+        strip_depth = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(42,40,41,20);
+    }  
+    if (box_num == 6){
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(85,40,41,20);
+    }
+    haschanged = true;
+  }
+
+  // Check to see if the button was clicked.  If yes, then call our function encoderOnButtonClick() and do something
+  if (rotaryEncoder.isEncoderButtonClicked()) {
+    encoderOnButtonClick();
+  }
+return haschanged;
+}
+
+bool read_encoder_value_mode() {
 
   bool haschanged = false;
 
@@ -188,21 +257,59 @@ bool read_encoder() {
   if (rotaryEncoder.encoderChanged()) {
     Serial.print("Value: ");
     Serial.println(rotaryEncoder.readEncoder());
+
+    if (box_num > 6){
+      box_num = 1;      
+    } 
+    /*
+    u8g2.setFontMode(1);  / * activate transparent font mode * /
+    u8g2.setDrawColor(1); / * color 1 for the box * /
+    u8g2.drawBox(22, 2, 35, 50);
+    u8g2.setFont(u8g2_font_ncenB14_tf);
+    u8g2.setDrawColor(0);
+    u8g2.drawStr(5, 18, "abcd");
+    u8g2.setDrawColor(1);
+    u8g2.drawStr(5, 33, "abcd");
+    u8g2.setDrawColor(2);
+    u8g2.drawStr(5, 48, "abcd");
+    */
     if (box_num == 1){
-      strip_length_left = rotaryEncoder.readEncoder();
+        strip_length_left = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(1);
+        Serial.println("215");
+        oled.drawBox(0,15,41,20);
+        Serial.println("217");
     }
     if (box_num == 2){
         wire_length = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(42,15,41,20);
     }
     if (box_num == 3){
         strip_length_right = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(85,15,41,20);
     }
     if (box_num == 4){
         quantity = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(0,40,41,20);
     }
     if (box_num == 5){
         strip_depth = rotaryEncoder.readEncoder();
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(42,40,41,20);
     }  
+    if (box_num == 6){
+        oled.setFontMode(1);
+        //oled.setDrawColor(2);
+        oled.drawBox(85,40,41,20);
+    }
     haschanged = true;
   }
 
@@ -222,7 +329,16 @@ void setup() {
 void loop() {
   
 	//optionally we can ignore whenever there is no change
-	if (read_encoder()) {
-    oled_update();
+  if (button_mode == ADJUST_VALUE) {
+    
+    if (read_encoder_value_mode()) {
+      oled_update();
+    }
+  }
+  else {
+    //button_mode == SELECT_BOXES
+    if (read_encoder_box_mode()) {
+      oled_update();
+    }
   }
 }
