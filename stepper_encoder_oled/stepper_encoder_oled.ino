@@ -9,9 +9,9 @@
 // A good example...
 // https://github.com/igorantolic/ai-esp32-rotary-encoder/blob/master/README_old.md
 
-#define ENCODER_CLK 4 // (purple, encoder pin clk)
+#define ENCODER_CLK 17 // (purple, encoder pin clk)
 #define ENCODER_DT 16 // (white, encoder pin dt)
-#define ENCODER_SW 17 // (grey, encoder pin sw)
+#define ENCODER_SW 4 // (grey, encoder pin sw)
 #define ENCODER_VCC -1
 #define ENCODER_STEPS 4
 
@@ -23,9 +23,9 @@
 
 #define motorInterfaceType 1
 
-#define OLED_CS 18 // chip select (red, oled pin 7)
-#define OLED_RES 19 // reset (green, oled pin 5)
-#define OLED_DC 23 // data  (orange, oled pin 6)
+#define OLED_CS 5 // chip select (red, oled pin 7)
+#define OLED_RES 27 // reset (green, oled pin 5)
+#define OLED_DC 13 // data  (orange, oled pin 6)
 
 #define LINMOT_STEPPERS_STEP_PIN 32
 #define LINMOT_STEPPERS_DIR_PIN 33
@@ -65,7 +65,7 @@ volatile unsigned long encoderLastPush = 0; // A variable to save the last times
 volatile unsigned long strip_length_left = 0; 
 volatile unsigned long wire_length = 0;
 volatile unsigned long strip_length_right = 0;
-volatile unsigned long quantity = 0;
+volatile unsigned long quantity = 1;
 volatile unsigned long strip_depth = 0;
 volatile unsigned short box_num = 1;
 
@@ -81,31 +81,37 @@ int linMotSteppersCurrStep = 0;  // Current position/step of the stepper motor.
 
 bool STEP_DIR = true;
 
-void moveClockwise(int goal) {
+void shut(int goal) {
   digitalWrite(LINMOT_STEPPERS_DIR_PIN, LOW);
-  digitalWrite(EXT_STEPPER_DIR_PIN, LOW);
   digitalWrite(LED_PIN, LOW);
   int count = 0;
   while(count <= goal) {
     digitalWrite(LINMOT_STEPPERS_STEP_PIN, HIGH);
-    digitalWrite(EXT_STEPPER_STEP_PIN, HIGH);
     delay(1);
     digitalWrite(LINMOT_STEPPERS_STEP_PIN, LOW);
-    digitalWrite(EXT_STEPPER_STEP_PIN, LOW);
     count = count + 1;
   }
 } 
 
-void moveCounterClockwise(int goal) {
+void open(int goal) {
   digitalWrite(LINMOT_STEPPERS_DIR_PIN, HIGH);
-  digitalWrite(EXT_STEPPER_DIR_PIN, HIGH);
   digitalWrite(LED_PIN, HIGH);
   int count = 0;
   while(count <= goal) {
     digitalWrite(LINMOT_STEPPERS_STEP_PIN, HIGH);
-    digitalWrite(EXT_STEPPER_STEP_PIN, HIGH);
     delay(1);
     digitalWrite(LINMOT_STEPPERS_STEP_PIN, LOW);
+    count = count + 1;
+  }
+} 
+
+void extrude(int goal) {
+  digitalWrite(EXT_STEPPER_DIR_PIN, LOW);
+  digitalWrite(LED_PIN, HIGH);
+  int count = 0;
+  while(count <= goal) {
+    digitalWrite(EXT_STEPPER_STEP_PIN, HIGH);
+    delay(1);
     digitalWrite(EXT_STEPPER_STEP_PIN, LOW);
     count = count + 1;
   }
@@ -363,8 +369,11 @@ return haschanged;
 }
 
 void cut() {
-  moveClockwise(1600);
-  moveCounterClockwise(1600);
+  for (int i = 0; i < quantity; i++) {
+  open(4000);
+  extrude(2000);
+  shut(4000);
+  }
 }
 
 void setup() {
