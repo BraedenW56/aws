@@ -62,11 +62,11 @@ const int WIRE_INSULATION_HEIGHT = 14;
 
 //volatile unsigned long encoderLastTurn = 0;
 volatile unsigned long encoderLastPush = 0; // A variable to save the last timestamp when the button was pushed
-volatile unsigned long strip_length_left = 0; 
-volatile unsigned long wire_length = 0;
-volatile unsigned long strip_length_right = 0;
+volatile unsigned long strip_length_left = 5; 
+volatile unsigned long wire_length = 75;
+volatile unsigned long strip_length_right = 5;
 volatile unsigned long quantity = 1;
-volatile unsigned long strip_depth = 0;
+volatile unsigned long strip_depth = 20;
 volatile unsigned short box_num = 1;
 
 volatile bool button_mode = SELECT_BOXES;
@@ -105,8 +105,20 @@ void open(int goal) {
   }
 } 
 
-void extrude(int goal) {
+void extrude_forward(int goal) {
   digitalWrite(EXT_STEPPER_DIR_PIN, LOW);
+  digitalWrite(LED_PIN, HIGH);
+  int count = 0;
+  while(count <= goal) {
+    digitalWrite(EXT_STEPPER_STEP_PIN, HIGH);
+    delay(1);
+    digitalWrite(EXT_STEPPER_STEP_PIN, LOW);
+    count = count + 1;
+  }
+} 
+
+void extrude_back(int goal) {
+  digitalWrite(EXT_STEPPER_DIR_PIN, HIGH);
   digitalWrite(LED_PIN, HIGH);
   int count = 0;
   while(count <= goal) {
@@ -369,11 +381,20 @@ return haschanged;
 }
 
 void cut() {
+  /*
   for (int i = 0; i < quantity; i++) {
+  int gauge = 0.127 * pow(92,(36 - strip_depth) / 39);
   open(4000);
-  extrude(2000);
-  shut(4000);
+  extrude_forward(strip_length_right * 50);
+  shut(4000 - (gauge * 50));
+  extrude_back(strip_length_right * 50);
+  open(4000 - (gauge * 50));
+  extrude_forward((strip_length_right * 50) + (wire_length * 50));
+  shut(4000 - (strip_depth * 50));
+  extrude_forward(strip_length_left * 50);
+  shut(strip_depth * 50);
   }
+  */
 }
 
 void setup() {
@@ -404,11 +425,4 @@ void loop() {
       oled_update();
     }
   }
-  
-  /*
-  digitalWrite(LED_PIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_PIN, LOW);
-  delay(1000);
-  */
 }
