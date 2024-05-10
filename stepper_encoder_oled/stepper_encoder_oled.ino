@@ -63,10 +63,10 @@ const int WIRE_INSULATION_HEIGHT = 14;
 //volatile unsigned long encoderLastTurn = 0;
 volatile unsigned long encoderLastPush = 0; // A variable to save the last timestamp when the button was pushed
 volatile unsigned long strip_length_left = 5; 
-volatile unsigned long wire_length = 75;
+volatile unsigned long wire_length = 25;
 volatile unsigned long strip_length_right = 5;
 volatile unsigned long quantity = 1;
-volatile unsigned long strip_depth = 20;
+volatile unsigned long strip_depth = 22;
 volatile unsigned short box_num = 1;
 
 volatile bool button_mode = SELECT_BOXES;
@@ -381,20 +381,19 @@ return haschanged;
 }
 
 void cut() {
-  /*
   for (int i = 0; i < quantity; i++) {
   int gauge = 0.127 * pow(92,(36 - strip_depth) / 39);
-  open(4000);
+  open(2000);
   extrude_forward(strip_length_right * 50);
-  shut(4000 - (gauge * 50));
-  extrude_back(strip_length_right * 50);
-  open(4000 - (gauge * 50));
-  extrude_forward((strip_length_right * 50) + (wire_length * 50));
-  shut(4000 - (strip_depth * 50));
+  shut(2000 - (gauge * 50));
+  open(2000 - (gauge * 50));
+  extrude_forward(wire_length * 50);
+  shut(2000 - (gauge * 50));
+  open(2000 - (gauge * 50));
   extrude_forward(strip_length_left * 50);
-  shut(strip_depth * 50);
+  shut(2500);
+  open(500);
   }
-  */
 }
 
 void setup() {
